@@ -25,7 +25,7 @@ class CardController extends Controller
         //
     }
 
-     /**
+    /**
      * Armazena um novo cartão.
      */
     public function store(Request $request)
@@ -77,7 +77,7 @@ class CardController extends Controller
         //
     }
 
-     /**
+    /**
      * Atualiza um cartão existente.
      * Pode ser usado tanto para editar título/descrição quanto para arrastar entre colunas
      * (ajustando column_id e position).
@@ -101,7 +101,29 @@ class CardController extends Controller
         return back();
     }
 
-     /**
+    /**
+     * Move o cartão para outra coluna e posição.
+     */
+    public function move(Request $request)
+    {
+        $data = $request->validate([
+            'card_id'   => 'required|exists:cards,id',
+            'column_id' => 'required|exists:columns,id',
+            'position'  => 'required|integer',
+        ]);
+
+        $card = Card::findOrFail($data['card_id']);
+        $card->update([
+            'column_id' => $data['column_id'],
+            'position'  => $data['position'],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+
+
+    /**
      * Remove (soft delete) um cartão.
      */
     public function destroy(Card $card)
