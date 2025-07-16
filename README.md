@@ -19,11 +19,6 @@ Este projeto foi construído utilizando as seguintes tecnologias principais:
 * **Gerenciamento de Estado Frontend:** [Inertia.js](https://inertiajs.com/) (versão ^2.0)
 * **Autenticação:** [Laravel Jetstream](https://jetstream.laravel.com/) (versão ^5.3)
 * **API Authentication:** [Laravel Sanctum](https://laravel.com/docs/current/sanctum) (versão ^4.0)
-* **Outras dependências:** (Você pode listar outras dependências importantes aqui, se desejar, olhando o seu `composer.json`)
-    * laravel-lang/common
-    * laravel-lang/native-locale-names
-    * laravel/tinker
-    * tightenco/ziggy
 
 ## Instalação
 
@@ -31,7 +26,7 @@ Siga estas etapas para instalar e configurar o Impact Lion Kanban localmente:
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://docs.github.com/articles/referencing-and-citing-content](https://docs.github.com/articles/referencing-and-citing-content)
+    git clone [https://docs.github.com/articles/referencing-and-citing-content](https://docs.github.com/articles/referencing-and-citing-content)](https://github.com/TheAlyn/ImpactLionKanban)
     cd ImpactLionKanban
     ```
 
@@ -89,12 +84,3 @@ Se você deseja contribuir para o desenvolvimento do Impact Lion Kanban, por fav
 Este projeto está licenciado sob a [Licença MIT](https://opensource.org/licenses/MIT).
 
 ---
-
-**Próximos passos:**
-
-* **Substitua os textos entre colchetes `[]` pelas informações reais do seu projeto**, como a URL do repositório.
-* **Detalhe a seção de "Utilização"** explicando os recursos e como usar o seu sistema.
-* **Adicione informações sobre testes**, se você tiver.
-* **Inclua qualquer outra seção que você ache relevante** para o seu projeto.
-
-Este é um bom ponto de partida para o seu README. Avise se tiver mais alguma dúvida!
