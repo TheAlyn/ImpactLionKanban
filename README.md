@@ -19,11 +19,6 @@ Este projeto foi construído utilizando as seguintes tecnologias principais:
 * **Gerenciamento de Estado Frontend:** [Inertia.js](https://inertiajs.com/) (versão ^2.0)
 * **Autenticação:** [Laravel Jetstream](https://jetstream.laravel.com/) (versão ^5.3)
 * **API Authentication:** [Laravel Sanctum](https://laravel.com/docs/current/sanctum) (versão ^4.0)
-* **Outras dependências:** (Você pode listar outras dependências importantes aqui, se desejar, olhando o seu `composer.json`)
-    * laravel-lang/common
-    * laravel-lang/native-locale-names
-    * laravel/tinker
-    * tightenco/ziggy
 
 ## Instalação
 
