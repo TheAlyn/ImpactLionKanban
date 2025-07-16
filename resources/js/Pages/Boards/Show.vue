@@ -9,6 +9,11 @@ import { ref, computed } from 'vue'
 // Props
 const { board } = defineProps({ board: Object })
 
+// DEBUG: loga todas as cores das colunas
+board.columns.forEach(col =>
+  console.log(`Column ${col.id} → raw color:`, col.color)
+)
+
 // == Colunas ==
 const creatingColumn = ref(false)
 const columnName = ref('')
@@ -16,6 +21,22 @@ const columnForm = useForm({
   name: '',
   board_id: board.id,
 })
+
+const priorityLabels = {
+  low: 'Baixa',
+  medium: 'Média',
+  high: 'Alta',
+}
+
+function translatePriority(value) {
+  return priorityLabels[value] || value
+}
+
+function normalizeColor(c) {
+  console.log('normalizeColor received:', c)
+  if (!c) return '#ffffff'        // fallback genérico
+  return c.startsWith('#') ? c : `#${c}`
+}
 
 // Abre/cancela formulário de nova coluna
 function openCreateColumn() { creatingColumn.value = true; columnName.value = '' }
@@ -98,12 +119,12 @@ function submitCard() {
 
 // Drag & Drop: atualiza posição e coluna via API
 function onCardDrop(evt, column) {
-  // tenta achar id da coluna de origem (se precisar)
+  // coluna de origem
   const fromColEl = evt.from.closest('[data-column-id]')
   const fromCol = fromColEl?.dataset.columnId ?? null
-  console.log('Drag start column:', fromCol, '→ drop column:', column.id)
+  console.log('Origem → column_id=' + fromCol)
 
-  // lê o card.id direto do elemento arrastado
+  // ID do card
   const movedCardId = evt.item.dataset.cardId
   if (!movedCardId) {
     console.error('Não achei data-card-id no elemento dropado')
@@ -111,17 +132,20 @@ function onCardDrop(evt, column) {
   }
   console.log('Card que será movido (ID):', movedCardId)
 
-  // calcula nova posição
+  // coluna de destino
+  const toColEl = evt.to.closest('[data-column-id]')
+  const toCol = toColEl?.dataset.columnId ?? null
+  console.log('Destino → column_id=' + toCol)
+
+  // nova posição dentro da nova coluna
   const newPos = evt.newIndex
   console.log('Nova posição dentro da coluna:', newPos)
 
-  // chama a API para atualizar coluna e posição
-  // chama a sua rota cards.move (POST /cards/move)
+  // chama a rota cards.move, passando movedCardId como parâmetro de URL
   router.post(
-    route('cards.move'),
+    route('cards.move', movedCardId),
     {
-      card_id: movedCardId,
-      column_id: column.id,
+      column_id: toCol,
       position: newPos,
     },
     {
@@ -184,22 +208,30 @@ const boardColor = computed(() => board.color || '#ffffff')
       <header class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold" :style="{ color: boardColor }">{{ board.name }}</h1>
-          <p class="text-sm text-gray-400">
+          <!--
+            <p class="text-sm text-gray-400">
             Empresa:
             <span v-if="board.tenant">{{ board.tenant.name }}</span>
             <span v-else class="italic text-red-400">Nenhuma empresa atrelada a este quadro</span>
           </p>
+          -->
         </div>
         <Link :href="route('boards.index')" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">Voltar
         </Link>
       </header>
 
       <!-- Container de colunas -->
-      <section class="columns-container flex space-x-4 overflow-x-auto hide-scrollbar min-h-[400px] pb-4 pr-16">
+      <section 
+        ref="cols"
+        class="columns-container flex space-x-4 overflow-x-auto hide-scrollbar min-h-[400px] pb-4 pr-16"
+        :class="{ 'has-fade': board.columns.length > 3 }"
+        @scroll="önScroll"
+      >
         <!-- Para cada coluna existente -->
         <template v-if="board.columns?.length">
           <div v-for="column in board.columns" :key="column.id" :data-column-id="column.id"
-            class="bg-gray-800 rounded-md p-4 w-72 flex-shrink-0 flex flex-col max-h-[600px] relative">
+            class="bg-gray-800 rounded-md p-4 w-72 flex-shrink-0 flex flex-col relative"
+            :style="{ border: `2px solid ${normalizeColor(column.color)}` }">
             <!-- Cabeçalho da coluna -->
             <header class="mb-4 flex items-center justify-between">
               <h2 class="font-semibold text-lg text-white truncate">{{ column.name }}</h2>
@@ -213,19 +245,35 @@ const boardColor = computed(() => board.color || '#ffffff')
                       <button @click="addCard(column)" class="block w-full text-left px-4 py-2 hover:bg-gray-700">➕
                         Adicionar cartão</button>
                     </li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">📋 Copiar Lista</button></li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">↔️ Mover Lista</button></li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">📤 Mover todos os
-                        cartões</button></li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">👀 Seguir</button></li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🎨 Alterar cor
-                        (Upgrade)</button></li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🗄️ Arquivar Lista</button>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">📋 Copiar Lista</button>
                     </li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🗑️ Excluir Lista</button>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">↔️ Mover Lista</button>
                     </li>
-                    <li><button class="block w-full text-left px-4 py-2 hover:bg-gray-700">📦 Arquivar todos os
-                        cartões</button></li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">
+                        📤 Mover todos os cartões
+                      </button>
+                    </li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">👀 Seguir</button>
+                    </li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🎨 Alterar cor
+                        (Upgrade)</button>
+                    </li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🗄️ Arquivar Lista</button>
+                    </li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">🗑️ Excluir Lista</button>
+                    </li>
+                    <li>
+                      <button class="block w-full text-left px-4 py-2 hover:bg-gray-700">
+                        📦 Arquivar todos os cartões
+                      </button>
+                    </li>
                   </ul>
                 </template>
               </Dropdown>
@@ -233,19 +281,25 @@ const boardColor = computed(() => board.color || '#ffffff')
 
             <!-- Cards com drag & drop -->
             <Draggable v-model="column.cards" :itemKey="'id'" :group="{ name: 'cards', pull: true, put: true }"
-              @end="evt => onCardDrop(evt, column)" class="flex-grow overflow-y-auto space-y-3">
+              @end="evt => onCardDrop(evt, column)" class="flex-grow space-y-3">
               <template #item="{ element: card }">
-                <div :data-card-id="card.id" class="rounded-md p-3 shadow cursor-pointer transition"
-                  :style="{ backgroundColor: card.color || '#2d3748', color: card.text_color || '#ffffff' }"
-                  @mouseover="$el.classList.add('hover:bg-gray-600')"
-                  @mouseout="$el.classList.remove('hover:bg-gray-600')">
-                  <h3 class="font-semibold text-white">{{ card.title }}</h3>
-                  <p class="text-gray-300 text-sm truncate" v-if="card.description">{{ card.description }}</p>
-                  <small class="text-gray-400">Prioridade: {{ card.priority }}</small>
+                <div :data-card-id="card.id"
+                  class="rounded-md p-3 shadow cursor-pointer transition bg-gray-100 hover:bg-gray-200"
+                  :style="{ borderLeft: `4px solid ${card.color || '#00ff4c'}` }">
+                  <h3 class="font-semibold text-gray-800">{{ card.title }}</h3>
+                  <p class="text-gray-600 text-sm truncate" v-if="card.description">
+                    {{ card.description }}
+                  </p>
+                  <small class="text-gray-500">
+                    Prioridade: {{ translatePriority(card.priority) }}
+                  </small>
                 </div>
               </template>
             </Draggable>
-            <p v-if="!column.cards.length" class="text-gray-500 text-sm italic">Nenhum card nesta lista.</p>
+
+            <p v-if="!column.cards.length" class="text-gray-500 text-sm italic">
+              Nenhum card nesta lista.
+            </p>
 
             <!-- Botão “+ Adicionar um cartão” -->
             <button @click="addCard(column)"
@@ -288,6 +342,7 @@ const boardColor = computed(() => board.color || '#ffffff')
           </template>
         </div>
       </section>
+
     </div>
   </AppLayout>
 </template>
@@ -307,19 +362,31 @@ const boardColor = computed(() => board.color || '#ffffff')
 
 .columns-container {
   position: relative;
+  overflow-x: auto;
 }
 
+/* Fade inicialmente escondido */
 .columns-container::after {
   content: "";
+  display: none;
   position: absolute;
   top: 0;
-  right: 0;
+  right: 0;          /* será sobrescrito pela classe ativa */
   width: 6rem;
   height: 100%;
   pointer-events: none;
-  /* Fade que indica que há conteúdo à direita */
-  background: linear-gradient(to right,
-      rgba(31, 41, 55, 0) 0%,
-      rgba(31, 41, 55, 0.9) 100%);
+  background: linear-gradient(
+    to right,
+    rgba(31,41,55,0) 0%,
+    rgba(31,41,55,0.9) 100%
+  );
+  transition: right .2s;
 }
+
+/* Quando houver overflow e estivermos “antes” do fim */
+.columns-container.has-fade::after {
+  display: block;
+  right: 1rem;       /* move o fade 1rem pra dentro */
+}
+
 </style>

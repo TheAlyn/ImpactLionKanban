@@ -45,7 +45,7 @@ Route::middleware([
         ->only(['store', 'update', 'destroy']);
     
     // Rota para mover cartoes entre colunas
-    Route::post('cards/move', [CardController::class, 'move'])->name('cards.move');
+    Route::post('cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
 
     // Minhas empresas - listagem para o usuário que pertence a elas
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
