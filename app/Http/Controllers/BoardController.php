@@ -24,6 +24,10 @@ class BoardController extends Controller
     {
         $boards = Board::where('user_id', auth()->id())
             ->with('tenant')
+            ->withCount([
+                'columns',
+                'cards',
+            ])
             ->latest()
             ->get();
 
