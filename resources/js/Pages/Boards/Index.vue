@@ -2,9 +2,16 @@
 import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
-defineProps({
-  boards: Array
+// 1. Desestrutura aqui:
+const { boards } = defineProps({
+  boards: Array,
 })
+
+// normaliza a cor para sempre começar com '#'
+function normalizeColor(c) {
+  if (!c) return '#ffffff'
+  return c.startsWith('#') ? c : `#${c}`
+}
 
 // Função para deletar quadro com confirmação
 function deleteBoard(id) {
@@ -34,11 +41,17 @@ function deleteBoard(id) {
           v-for="board in boards"
           :key="board.id"
           class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition flex flex-col justify-between"
+          :style="{ borderLeft: `4px solid ${normalizeColor(board.color)}` }"
         >
           <div>
-            <h2 class="text-lg font-semibold mb-2">{{ board.name }}</h2>
+            <h2 class="text-lg font-semibold mb-1">{{ board.name }}</h2>
             <p class="text-sm text-gray-400 mb-2">{{ board.description || 'Sem descrição' }}</p>
-            <p class="text-xs text-gray-500 mb-4">Empresa: {{ board.tenant?.name || '-' }}</p>
+
+            <!-- 2. Exibição das contagens -->
+            <p class="text-xs text-gray-500 mb-4 leading-tight">
+              Listas: {{ board.columns_count }} Total<br>
+              Cartões: {{ board.cards_count }} Total
+            </p>
           </div>
 
           <div class="flex justify-between">
