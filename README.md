@@ -26,7 +26,7 @@ Siga estas etapas para instalar e configurar o Impact Lion Kanban localmente:
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://docs.github.com/articles/referencing-and-citing-content](https://docs.github.com/articles/referencing-and-citing-content)](https://github.com/TheAlyn/ImpactLionKanban)
+    git clone https://github.com/TheAlyn/ImpactLionKanban
     cd ImpactLionKanban
     ```
 
