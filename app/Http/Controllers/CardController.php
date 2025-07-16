@@ -104,21 +104,17 @@ class CardController extends Controller
     /**
      * Move o cartão para outra coluna e posição.
      */
-    public function move(Request $request)
+    public function move(Request $request, Card $card)
     {
         $data = $request->validate([
-            'card_id'   => 'required|exists:cards,id',
             'column_id' => 'required|exists:columns,id',
             'position'  => 'required|integer',
         ]);
 
-        $card = Card::findOrFail($data['card_id']);
-        $card->update([
-            'column_id' => $data['column_id'],
-            'position'  => $data['position'],
-        ]);
+        $card->update($data);
 
-        return response()->json(['success' => true]);
+        // Inertia espera um redirect válido, não JSON puro
+        return redirect()->back();
     }
 
 
