@@ -38,11 +38,14 @@ Route::middleware([
 
     // Rotas para gerenciar colunas dentro de um board
     Route::resource('columns', ColumnController::class)
-    ->only(['store', 'update', 'destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     // Rotas para gerenciar os cartoes dentro de uma coluna
-      Route::resource('cards', CardController::class)
+    Route::resource('cards', CardController::class)
         ->only(['store', 'update', 'destroy']);
+    
+    // Rota para mover cartoes entre colunas
+    Route::post('cards/move', [CardController::class, 'move'])->name('cards.move');
 
     // Minhas empresas - listagem para o usuário que pertence a elas
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
