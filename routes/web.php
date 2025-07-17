@@ -39,11 +39,12 @@ Route::middleware([
     // Rotas para gerenciar colunas dentro de um board
     Route::resource('columns', ColumnController::class)
         ->only(['store', 'update', 'destroy']);
+    Route::get('boards/{board}/columns', [ColumnController::class,'index'])->name('boards.columns.index');
 
+    Route::get('boards/{board}/cards',   [CardController::class,'index'])->name('boards.cards.index');
     // Rotas para gerenciar os cartoes dentro de uma coluna
     Route::resource('cards', CardController::class)
         ->only(['store', 'update', 'destroy']);
-    
     // Rota para mover cartoes entre colunas
     Route::post('cards/{card}/move', [CardController::class, 'move'])->name('cards.move');
 

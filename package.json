@@ -8,7 +8,7 @@
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0",
-        "@tailwindcss/forms": "^0.5.7",
+        "@tailwindcss/forms": "^0.5.10",
         "@tailwindcss/typography": "^0.5.10",
         "@tailwindcss/vite": "^4.0.0",
         "@vitejs/plugin-vue": "^5.0.0",
@@ -22,6 +22,15 @@
         "vue": "^3.3.13"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^6.7.2",
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/vue-fontawesome": "^3.0.8",
+        "@tiptap/extension-placeholder": "^3.0.7",
+        "@tiptap/extension-text-align": "^3.0.7",
+        "@tiptap/extension-underline": "^3.0.7",
+        "@tiptap/starter-kit": "^3.0.7",
+        "@tiptap/vue-3": "^3.0.7",
         "vuedraggable": "^4.1.0"
     }
 }
