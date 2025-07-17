@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Board;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BoardController extends Controller
 {
@@ -109,6 +112,15 @@ class BoardController extends Controller
      */
     public function edit(Board $board)
     {
+        // Eager-load relacionamentos que precisamos
+        $board->load([
+            'columns',
+            'cards'
+        ]);
+
+        // Carregando o count de colunas e de cards
+        $board->loadCount(['columns', 'cards']);
+
         return Inertia::render('Boards/Edit', [
             'board' => $board,
         ]);
@@ -119,32 +131,73 @@ class BoardController extends Controller
      */
     public function update(Request $request, Board $board)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'color' => ['nullable', 'string', 'max:7'],
-            'icon' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'background_image' => ['nullable', 'string'],
-            'is_favorite' => ['sometimes', 'boolean'],
-            'is_public' => ['sometimes', 'boolean'],
-            'is_archived' => ['sometimes', 'boolean'],
-            'is_template' => ['sometimes', 'boolean'],
-            'is_read_only' => ['sometimes', 'boolean'],
-            'is_collaborative' => ['sometimes', 'boolean'],
-            'is_private' => ['sometimes', 'boolean'],
-            'is_locked' => ['sometimes', 'boolean'],
-            'is_pinned' => ['sometimes', 'boolean'],
-            'is_hidden' => ['sometimes', 'boolean'],
-            'is_archived_by_user' => ['sometimes', 'boolean'],
-            'is_shared' => ['sometimes', 'boolean'],
-            'is_synced' => ['sometimes', 'boolean'],
-            'is_trashed' => ['sometimes', 'boolean'],
-        ]);
+       // loga TODA a request — inclusive arquivos (!)
+       //Log::info('Board.update – incoming request:', $request->all()); 
 
-        $board->update($validated);
+        $rules = [
+            'name'               => 'sometimes|required|string|max:255',
+            'slug'               => 'sometimes|required|string|max:255|unique:boards,slug,' . $board->id,
+            'icon'               => 'sometimes|nullable|string|max:255',
+            'background_image'   => 'sometimes|nullable|image|max:2048',
+            'color'              => 'sometimes|required|string|size:7',
+            'description'        => 'sometimes|nullable|string',
+            'is_favorite'        => 'sometimes|boolean',
+            'is_public'          => 'sometimes|boolean',
+            'is_archived'        => 'sometimes|boolean',
+            'is_template'        => 'sometimes|boolean',
+            'is_read_only'       => 'sometimes|boolean',
+            'is_collaborative'   => 'sometimes|boolean',
+            'is_private'         => 'sometimes|boolean',
+            'is_locked'          => 'sometimes|boolean',
+            'is_pinned'          => 'sometimes|boolean',
+            'is_hidden'          => 'sometimes|boolean',
+            'is_archived_by_user'=> 'sometimes|boolean',
+            'is_shared'          => 'sometimes|boolean',
+            'is_synced'          => 'sometimes|boolean',
+            'is_trashed'         => 'sometimes|boolean',
+        ];
 
-        return redirect()->route('boards.index')->with('success', 'Quadro atualizado com sucesso!');
+        $data = $request->validate($rules);
+
+        // 2) Logar os dados validados
+        //Log::info('Board.update – validated data:', $data);
+
+        // Flags booleanas: garante true/false
+        foreach ([
+            'is_favorite','is_public','is_archived','is_template','is_read_only',
+            'is_collaborative','is_private','is_locked','is_pinned','is_hidden',
+            'is_archived_by_user','is_shared','is_synced','is_trashed',
+        ] as $flag) {
+            if ($request->has($flag)) {
+                $data[$flag] = (bool) $request->input($flag);
+            }
+        }
+
+        // 3) Upload de imagem (se houver) com nome único
+        if ($request->hasFile('background_image')) {
+            $file = $request->file('background_image');
+            // opcional: deleta a anterior
+            if ($board->background_image) {
+                Storage::disk('public')->delete($board->background_image);
+            }
+            // gera nome único
+            $filename = 'board_'.$board->id.'_'.Str::uuid().'.'.$file->extension();
+            $path = $file->storeAs('boards/covers', $filename, 'public');
+            $data['background_image'] = $path;
+
+           //Log::info("Board.update – new cover stored at: {$path}");
+        }
+
+        // 4) Atualiza somente os campos alterados
+        $board->update($data);
+
+        //Log::info("Board.update – board {$board->id} updated successfully");
+
+        return redirect()
+            ->route('boards.show', $board)
+            ->with('success', 'Quadro atualizado com sucesso!');
     }
+
 
 
     /**
